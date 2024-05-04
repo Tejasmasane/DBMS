@@ -1,0 +1,74 @@
+ Write a PL/SQL block of code for the following requirements: - Borrower 
+(Rollin, Name, DateofIssue, NameofBook, Status) Fine (Roll_no,Date,Amt) .
+a. Accept roll_no & name of book from user.
+b. Check the number of days (from date of issue), if days are between 15
+to 30 then fine amount will be Rs 5per day.
+c. If no. of days>30, per day fine will be Rs 50 per day & for days less than 
+30, Rs. 5 per day.
+d. After submitting the book, status will change from I to R.
+e. If condition of fine is true, then details will be stored into fine table
+Use Control structure and Exception handling .
+
+SHOW DATABASES;
+
+CREATE DATABASE T191204317;
+
+USE T191204317;
+
+CREATE TABLE borrower (
+    rollno INT,
+    name VARCHAR(100),
+    issue_date DATE,
+    book_name VARCHAR(100),
+    status CHAR(5),
+    PRIMARY KEY(rollno)
+);
+
+CREATE TABLE fine (
+    rollno INT PRIMARY KEY,
+    return_date DATE,
+    amount INT,
+    FOREIGN KEY (rollno) REFERENCES borrower(rollno) ON DELETE CASCADE
+);
+
+DELIMITER //
+
+CREATE PROCEDURE insert_student(IN roll_no INT, name VARCHAR(100), issue_date DATE, book_name VARCHAR(100), status CHAR(5))
+BEGIN
+    INSERT INTO borrower VALUES (roll_no, name, issue_date, book_name, status);
+END//
+
+CREATE PROCEDURE calculate_fine(IN rno INT, n VARCHAR(100))
+BEGIN
+    DECLARE i_date DATE;
+    DECLARE day_diff INT;
+    DECLARE fine_amt INT;
+
+    DECLARE EXIT HANDLER FOR 1062
+        SELECT 'Fine already paid';
+
+    SELECT issue_date INTO i_date FROM borrower WHERE rollno = rno AND name = n;
+    SELECT DATEDIFF(CURDATE(), i_date) INTO day_diff;
+
+    IF (day_diff >= 15 AND day_diff <= 30) THEN
+        SET fine_amt = day_diff * 5;
+        INSERT INTO fine VALUES (rno, CURDATE(), fine_amt);
+    ELSEIF (day_diff > 30) THEN
+        SET fine_amt = day_diff * 50;
+        INSERT INTO fine VALUES (rno, CURDATE(), fine_amt);
+    END IF;
+
+    UPDATE borrower SET status = 'R' WHERE rollno = rno AND name = n;
+END//
+
+DELIMITER ;
+
+CALL insert_student(1, 'Aditi', '2021-08-15', 'JAVA', 'I');
+CALL insert_student(2, 'Aditya', '2021-08-01', 'DBMS', 'I');
+CALL insert_student(3, 'Anurag', '2021-08-31', 'TOC', 'I');
+CALL insert_student(4, 'Asim', '2021-09-10', 'CNS', 'I');
+CALL insert_student(5, 'Aryan', '2021-09-04', 'DS', 'I');
+CALL insert_student(6, 'Aneesh', '2021-08-20', 'HCI', 'I');
+CALL insert_student(7, 'Abhishek', '2021-08-13', 'PYTHON', 'I');
+
+SELECT * FROM borrower;

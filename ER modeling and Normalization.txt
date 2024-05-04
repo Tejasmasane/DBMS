@@ -1,0 +1,39 @@
+create table Borrower(Roll_no int(20) primary key,Name varchar(20),DateofIssue date,NameofBook varchar(20),Status varchar(20));
+
+
+create table Fine(Roll_no int(20),date1 date,amt int(20));
+mysql> insert into Borrower values(1,"Rahul",'2019-07-13',"dbms","I");
+Query OK, 1 row affected (0.09 sec)
+
+mysql> insert into Borrower values(2,"Rakesh",'2019-07-28',"sql","I");
+
+
+mysql> insert into Borrower values(33,"Aadil",'2019-05-13',"toc","I");
+
+
+mysql> insert into Borrower values(85,"Akbar",'2019-06-20',"toc","I");
+
+select * from Borrower;
+
+select * from Fine;
+
+
+delimiter$$
+create procedure callfine(rollin int(20),name varchar(20))
+begin
+declare ldate date;
+declare day int(20);
+declare fine int(20);
+select DateofIssue into ldate from Borrower where Roll_no=rollin and NameofBook=name;
+set day=DATEDIFF(CURDATE(),ldate);
+if(day>=15 and day<=30) then 
+set fine=day*5;
+elseif(day>30) then
+set fine=day*50;
+end if;
+update Borrower set Status='R' where Roll_no= rollin and NameofBook=name;
+if(fine is not null) then
+insert into Fine values(rollin,CURDATE(),fine);
+end if;
+end
+$$delimeter
